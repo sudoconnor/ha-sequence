@@ -29,3 +29,5 @@ jobs:
           test -f README.md
           test -f custom_components/sequence/manifest.json
           test -f custom_components/sequence/__init__.py
+          test -f custom_components/sequence/brand/icon.png
+          test -f custom_components/sequence/brand/icon@2x.png

@@ -9,3 +9,4 @@
 - Added Sequence namespacing for friendly names/entity IDs.
 - Added privacy-redacted diagnostics.
 - Added options for polling interval and account sensor enablement.
+- Added local Home Assistant brand assets so the integration no longer shows the generic “icon not available” placeholder.
