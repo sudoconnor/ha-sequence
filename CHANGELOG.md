@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 - unreleased
+## 0.1.0 - 2026-04-27
 
 - Initial HACS-ready Sequence custom integration.
 - Added UI config flow for Sequence API token and base URL.
