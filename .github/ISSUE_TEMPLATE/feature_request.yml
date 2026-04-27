@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest a read-only resource or guarded action
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Mutating features like transfers/rule triggers need explicit opt-in, allowlists, confirmations, caps, and auditability.
+  - type: textarea
+    id: feature
+    attributes:
+      label: What would you like added?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: Relevant Sequence API docs or observations
+      description: Do not include tokens or private financial data.

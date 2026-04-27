@@ -1,0 +1,31 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Unit tests
+        run: python -m unittest discover -s tests
+      - name: Compile
+        run: python -m compileall custom_components tests
+      - name: Validate JSON metadata
+        run: |
+          python -m json.tool custom_components/sequence/manifest.json >/dev/null
+          python -m json.tool custom_components/sequence/strings.json >/dev/null
+          python -m json.tool custom_components/sequence/translations/en.json >/dev/null
+          python -m json.tool hacs.json >/dev/null
+      - name: Check HACS structure
+        run: |
+          test -f hacs.json
+          test -f README.md
+          test -f custom_components/sequence/manifest.json
+          test -f custom_components/sequence/__init__.py
