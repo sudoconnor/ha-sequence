@@ -2,7 +2,7 @@
 
 A HACS-ready custom integration for [Sequence](https://www.getsequence.io/) finance automation.
 
-Licensed under Apache-2.0.
+Licensed under Apache-2.0. This is an unofficial community integration and is not affiliated with, endorsed by, or sponsored by Sequence Ltd.
 
 Current MVP: **read-only Sequence account balance sensors**. No transfers, rule triggers, bill payments, or other money-moving actions are implemented.
 
