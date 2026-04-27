@@ -4,6 +4,12 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   python:
@@ -31,3 +37,17 @@ jobs:
           test -f custom_components/sequence/__init__.py
           test -f custom_components/sequence/brand/icon.png
           test -f custom_components/sequence/brand/icon@2x.png
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
