@@ -58,7 +58,7 @@ class SequenceBalanceSensor(CoordinatorEntity[SequenceDataUpdateCoordinator], Se
 
     _attr_device_class = SensorDeviceClass.MONETARY
     _attr_icon = "mdi:bank"
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_state_class = SensorStateClass.TOTAL
 
     def __init__(self, coordinator: SequenceDataUpdateCoordinator, account_id: str) -> None:
         """Initialize the sensor."""
