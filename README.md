@@ -4,7 +4,7 @@ A HACS-ready custom integration for [Sequence](https://www.getsequence.io/) fina
 
 Licensed under Apache-2.0. This is an unofficial community integration and is not affiliated with, endorsed by, or sponsored by Sequence Ltd.
 
-Current MVP: **read-only Sequence account balance sensors**. No transfers, rule triggers, bill payments, or other money-moving actions are implemented.
+Current MVP: **read-only Sequence account balance sensors and balance-change events**. No transfers, bill payments, or other money-moving actions are implemented.
 
 ## Status
 
@@ -16,6 +16,7 @@ Early dogfood build. The integration is intentionally conservative while the pub
 - Password-style token field; tokens are not logged or exposed in diagnostics
 - Cloud polling via Home Assistant `DataUpdateCoordinator`
 - One monetary sensor per discovered Sequence account
+- Home Assistant events when a polled Sequence account balance increases or decreases
 - Friendly names and entity IDs are clearly namespaced as `Sequence ...` / `sensor.sequence_*`
 - Stable unique IDs based on Sequence account IDs, so entities survive account renames
 - Privacy-first diagnostics: tokens, account IDs, names, balances, and account metadata are redacted or summarized
@@ -41,7 +42,39 @@ Example entity IDs:
 - `sensor.sequence_rent_balance`
 - `sensor.sequence_credit_card_balance`
 
-Unavailable sensors usually mean Sequence returned an account without usable balance data. If Sequence provides a balance error, the integration exposes it as the non-sensitive `balance_error` attribute.
+Unavailable sensors usually mean Sequence returned an account without usable balance data. If Sequence provides a balance error, the integration exposes it as the non-sensitive `balance_error` attribute. Sensors also expose the Sequence `account_id` attribute so automations can target a stable account identity instead of only a friendly name.
+
+## Events
+
+After the first successful poll establishes a baseline, the integration fires Home Assistant events when an account balance changes between polls:
+
+- `sequence_account_balance_increased`
+- `sequence_account_balance_decreased`
+
+Event data:
+
+- `account_id`
+- `account_name`
+- `account_type`
+- `previous_balance`
+- `balance`
+- `balance_change`
+- `currency`
+
+Example automation trigger:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: sequence_account_balance_increased
+    event_data:
+      account_name: 11467 Rent
+conditions:
+  - condition: template
+    value_template: "{{ trigger.event.data.account_type == 'Income Source' }}"
+```
+
+Important limitation: these events are derived from the public `POST /accounts` balance snapshots. If money arrives in an income source and Sequence sweeps it away before Home Assistant polls, no balance delta is visible to the integration. A true transfer/activity event feed still requires a documented Sequence transaction/activity API or webhook.
 
 ## API scope
 
@@ -50,7 +83,7 @@ The integration currently uses:
 - `POST /accounts`
 - Header: `x-sequence-access-token: Bearer <token>`
 
-Sequence rule discovery, rule execution, transfers, cards, webhooks, and other non-account resources are deliberately **not** implemented yet. Mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
+Sequence rule discovery, rule execution, transfers, cards, webhooks, transaction/activity feeds, and other non-account resources are deliberately **not** implemented yet. Mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
 
 See [`docs/API_BOUNDARY.md`](docs/API_BOUNDARY.md) for the current API findings.
 

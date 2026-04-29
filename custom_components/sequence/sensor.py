@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SequenceAccount
-from .const import ATTR_ACCOUNT_TYPE, ATTR_BALANCE_ERROR, DOMAIN
+from .const import ATTR_ACCOUNT_ID, ATTR_ACCOUNT_TYPE, ATTR_BALANCE_ERROR, DOMAIN
 from .coordinator import SequenceDataUpdateCoordinator
 
 
@@ -110,7 +110,7 @@ class SequenceBalanceSensor(CoordinatorEntity[SequenceDataUpdateCoordinator], Se
         account = self.account
         if account is None:
             return {}
-        attrs: dict[str, Any] = {}
+        attrs: dict[str, Any] = {ATTR_ACCOUNT_ID: account.id}
         if account.type:
             attrs[ATTR_ACCOUNT_TYPE] = account.type
         if account.balance_error:

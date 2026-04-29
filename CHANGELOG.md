@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added Home Assistant balance-change events derived from polled Sequence account balances: `sequence_account_balance_increased` and `sequence_account_balance_decreased`.
+- Added stable `account_id` to balance sensor attributes for safer automations.
+- Documented the limitation that balance-change events cannot see funds that arrive and sweep away between polls; a true activity feed still needs documented Sequence transaction/activity API support.
+
 ## 0.1.0 - 2026-04-27
 
 - Initial HACS-ready Sequence custom integration.
