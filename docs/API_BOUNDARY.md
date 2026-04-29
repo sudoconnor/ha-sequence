@@ -8,12 +8,17 @@ This project currently treats Sequence as a read-only source for account balance
 - Auth header: `x-sequence-access-token: Bearer <token>`
 - Account discovery/balance read: `POST /accounts`
 
+## Documented but not dogfooded
+
+- Rule trigger: `POST /remote-api/rules/{ruleId}/trigger`
+- Auth header for rule triggers: `x-sequence-signature: Bearer <rule API secret>`
+- Optional idempotency header: `idempotency-key: <unique trigger key>`
+
 ## Not implemented yet
 
 The following areas are intentionally out of scope until they are documented and can be implemented with Home Assistant guardrails:
 
 - Rule discovery/listing
-- Rule triggering
 - Transfers or other money movement
 - Bill payment
 - Card management
@@ -28,7 +33,7 @@ That finding is deliberately phrased narrowly: it means these resources are not 
 
 ## Safety bar for future mutating features
 
-Before adding any mutating feature, require all of the following:
+Before adding any mutating feature beyond allowlisted rule triggers, require all of the following:
 
 - Explicit opt-in in the config/options flow
 - Allowlist of permitted Sequence rule/action IDs

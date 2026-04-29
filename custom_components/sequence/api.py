@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from typing import Any, Protocol
-from urllib.parse import urljoin
+from urllib.parse import quote, urljoin
 
 from .const import DEFAULT_BASE_URL
 
@@ -63,6 +63,14 @@ class SequenceAccount:
     currency: str = "USD"
 
 
+@dataclass(slots=True, frozen=True)
+class SequenceRuleTriggerResult:
+    """Normalized Sequence rule trigger response."""
+
+    request_id: str | None = None
+    message: str | None = None
+
+
 class SequenceApiClient:
     """Read-only Sequence API client."""
 
@@ -84,21 +92,51 @@ class SequenceApiClient:
         payload = await self._async_post_json("accounts", {})
         return _extract_accounts(payload)
 
-    async def _async_post_json(self, path: str, body: dict[str, Any]) -> Any:
+    async def async_trigger_rule(
+        self,
+        rule_id: str,
+        api_secret: str,
+        payload: dict[str, Any] | None = None,
+        idempotency_key: str | None = None,
+    ) -> SequenceRuleTriggerResult:
+        """Trigger a Sequence rule configured for Remote API access."""
+
+        response = await self._async_post_json(
+            f"remote-api/rules/{quote(rule_id, safe='')}/trigger",
+            payload or {},
+            auth_header="x-sequence-signature",
+            auth_token=api_secret,
+            auth_error_message="Sequence rejected the rule API secret",
+            idempotency_key=idempotency_key,
+        )
+        return _extract_rule_trigger_result(response)
+
+    async def _async_post_json(
+        self,
+        path: str,
+        body: dict[str, Any],
+        *,
+        auth_header: str = "x-sequence-access-token",
+        auth_token: str | None = None,
+        auth_error_message: str = "Sequence rejected the API token",
+        idempotency_key: str | None = None,
+    ) -> Any:
         """POST JSON to Sequence and return decoded JSON."""
 
         url = urljoin(self._base_url, path.lstrip("/"))
         headers = {
             "accept": "application/json",
             "content-type": "application/json",
-            "x-sequence-access-token": _bearer(self._api_token),
+            auth_header: _bearer(auth_token or self._api_token),
         }
+        if idempotency_key:
+            headers["idempotency-key"] = idempotency_key
 
         try:
             async with asyncio.timeout(self._request_timeout):
                 async with self._session.post(url, headers=headers, json=body) as response:
                     if response.status in (401, 403):
-                        raise SequenceAuthError("Sequence rejected the API token")
+                        raise SequenceAuthError(auth_error_message)
                     if response.status == 429:
                         raise SequenceRateLimitError("Sequence API rate limit exceeded")
                     if response.status >= 400:
@@ -153,6 +191,21 @@ def _extract_accounts(payload: Any) -> list[SequenceAccount]:
             )
         )
     return normalized
+
+
+def _extract_rule_trigger_result(payload: Any) -> SequenceRuleTriggerResult:
+    """Extract non-sensitive rule trigger details from a Sequence response."""
+
+    if not isinstance(payload, dict):
+        return SequenceRuleTriggerResult()
+
+    request_id = _first_string(payload, "requestId", "request_id")
+    data = payload.get("data")
+    if request_id is None and isinstance(data, dict):
+        request_id = _first_string(data, "requestId", "request_id")
+
+    message = _first_string(payload, "message")
+    return SequenceRuleTriggerResult(request_id=request_id, message=message)
 
 
 def _find_accounts(payload: Any) -> list[Any]:

@@ -1,0 +1,30 @@
+trigger_rule:
+  name: Trigger rule
+  description: Trigger a Sequence rule that has been configured for Remote API access.
+  fields:
+    rule_id:
+      name: Rule ID
+      description: Sequence rule ID. This ID must be allowlisted in the Sequence integration options.
+      required: true
+      example: "ru_12345"
+      selector:
+        text:
+    api_secret:
+      name: Rule API secret
+      description: API secret for this Sequence rule. This is different from the account access token.
+      required: true
+      selector:
+        text:
+          type: password
+    idempotency_key:
+      name: Idempotency key
+      description: Optional unique key to prevent duplicate processing if you retry the same trigger.
+      required: false
+      selector:
+        text:
+    payload:
+      name: Payload
+      description: Optional JSON object to send to the rule. Most rules accept an empty object.
+      required: false
+      selector:
+        object:

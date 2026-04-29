@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a draft `sequence.trigger_rule` service for allowlisted Sequence Remote API rule triggers.
+
 ## 0.1.0 - 2026-04-27
 
 - Initial HACS-ready Sequence custom integration.

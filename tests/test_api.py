@@ -92,6 +92,17 @@ class SequenceApiNormalizationTest(unittest.TestCase):
         self.assertEqual(api._bearer("abc"), "Bearer abc")
         self.assertEqual(api._bearer("Bearer abc"), "Bearer abc")
 
+    def test_extract_rule_trigger_result(self) -> None:
+        result = api._extract_rule_trigger_result(
+            {
+                "message": "Rule with id ru_12345 has been triggered",
+                "data": {"requestId": "req_123"},
+            }
+        )
+
+        self.assertEqual(result.request_id, "req_123")
+        self.assertEqual(result.message, "Rule with id ru_12345 has been triggered")
+
 
 if __name__ == "__main__":
     unittest.main()
