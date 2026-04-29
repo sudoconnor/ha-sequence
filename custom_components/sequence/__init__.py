@@ -11,7 +11,7 @@ from .api import SequenceApiClient
 from .const import CONF_API_TOKEN, CONF_BASE_URL, DOMAIN, DEFAULT_BASE_URL
 from .coordinator import SequenceDataUpdateCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
 SequenceConfigEntry = ConfigEntry

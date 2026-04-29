@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect Sequence",
-        "description": "Enter a Sequence API token. Use the most restrictive/read-only token Sequence allows. The integration currently creates account balance sensors.",
+        "description": "Enter a Sequence API token. Use the most restrictive/read-only token Sequence allows. The integration currently creates account balance and API health sensors.",
         "data": {
           "api_token": "API token",
           "base_url": "API base URL",

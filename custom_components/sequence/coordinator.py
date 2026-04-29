@@ -10,7 +10,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import SequenceAccount, SequenceApiClient, SequenceApiError
+from .api import (
+    SequenceAccount,
+    SequenceApiClient,
+    SequenceApiError,
+    SequenceAuthError,
+    SequenceRateLimitError,
+)
 from .const import CONF_ENABLE_ACCOUNT_SENSORS, DEFAULT_OPTIONS, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +37,7 @@ class SequenceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.client = client
         self.config_entry = entry
+        self.last_error_type: str | None = None
         interval_seconds = int(
             entry.options.get("scan_interval", entry.data.get("scan_interval", DEFAULT_SCAN_INTERVAL))
         )
@@ -65,6 +72,14 @@ class SequenceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             accounts = await self.client.async_get_accounts()
-        except SequenceApiError as err:
+        except SequenceAuthError as err:
+            self.last_error_type = "auth"
             raise UpdateFailed(str(err)) from err
+        except SequenceRateLimitError as err:
+            self.last_error_type = "rate_limit"
+            raise UpdateFailed(str(err)) from err
+        except SequenceApiError as err:
+            self.last_error_type = "api"
+            raise UpdateFailed(str(err)) from err
+        self.last_error_type = None
         return {"accounts": accounts}

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added an API health/problem binary sensor for Sequence polling failures.
+
 ## 0.1.0 - 2026-04-27
 
 - Initial HACS-ready Sequence custom integration.
