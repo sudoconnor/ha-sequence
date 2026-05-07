@@ -1,12 +1,13 @@
 # Sequence API boundary
 
-This project currently treats Sequence as a read-only source for account balances.
+This project currently treats Sequence as a read-only source for account balances. Balance-change events are derived locally by comparing successive account-balance polls.
 
 ## Confirmed working
 
 - Base URL: `https://api.getsequence.io`
 - Auth header: `x-sequence-access-token: Bearer <token>`
 - Account discovery/balance read: `POST /accounts`
+- Locally derived Home Assistant balance-change events when an account balance changes between successful polls
 
 ## Documented but not dogfooded
 
@@ -24,6 +25,12 @@ The following areas are intentionally out of scope until they are documented and
 - Card management
 - Webhook registration
 - Transaction firehose/history
+
+## Balance-change event limitation
+
+The integration fires `sequence_account_balance_increased` and `sequence_account_balance_decreased` events by comparing current `POST /accounts` balances to the previous successful poll. This is useful for automations when funds remain visible in an account long enough for Home Assistant to sample the balance.
+
+It is not a substitute for a transfer/activity feed. If money lands in an income source and Sequence immediately routes it elsewhere between polls, the public account snapshot can show no observable delta. A reliable "money arrived" event for that case requires a documented Sequence transaction/activity endpoint or webhook that includes transfer IDs, amounts, sources, destinations, statuses, and timestamps.
 
 ## Dogfood findings
 

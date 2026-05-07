@@ -17,7 +17,20 @@ from .api import (
     SequenceAuthError,
     SequenceRateLimitError,
 )
-from .const import CONF_ENABLE_ACCOUNT_SENSORS, DEFAULT_OPTIONS, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    ATTR_ACCOUNT_ID,
+    ATTR_ACCOUNT_NAME,
+    ATTR_ACCOUNT_TYPE,
+    ATTR_BALANCE,
+    ATTR_BALANCE_CHANGE,
+    ATTR_PREVIOUS_BALANCE,
+    CONF_ENABLE_ACCOUNT_SENSORS,
+    DEFAULT_OPTIONS,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    EVENT_ACCOUNT_BALANCE_DECREASED,
+    EVENT_ACCOUNT_BALANCE_INCREASED,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +51,8 @@ class SequenceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.config_entry = entry
         self.last_error_type: str | None = None
+        self._last_balances: dict[str, float] = {}
+        self._has_baseline = False
         interval_seconds = int(
             entry.options.get("scan_interval", entry.data.get("scan_interval", DEFAULT_SCAN_INTERVAL))
         )
@@ -81,5 +96,48 @@ class SequenceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except SequenceApiError as err:
             self.last_error_type = "api"
             raise UpdateFailed(str(err)) from err
+
         self.last_error_type = None
+        self._async_fire_balance_change_events(accounts)
         return {"accounts": accounts}
+
+    def _async_fire_balance_change_events(self, accounts: list[SequenceAccount]) -> None:
+        """Fire Home Assistant events for Sequence account balance changes."""
+
+        current_balances = {
+            account.id: account.balance
+            for account in accounts
+            if account.balance is not None
+        }
+
+        if not self._has_baseline:
+            self._last_balances = current_balances
+            self._has_baseline = True
+            return
+
+        for account in accounts:
+            current = account.balance
+            previous = self._last_balances.get(account.id)
+            if current is None or previous is None or current == previous:
+                continue
+
+            change = round(current - previous, 2)
+            event_type = (
+                EVENT_ACCOUNT_BALANCE_INCREASED
+                if change > 0
+                else EVENT_ACCOUNT_BALANCE_DECREASED
+            )
+            self.hass.bus.async_fire(
+                event_type,
+                {
+                    ATTR_ACCOUNT_ID: account.id,
+                    ATTR_ACCOUNT_NAME: account.name,
+                    ATTR_ACCOUNT_TYPE: account.type,
+                    ATTR_PREVIOUS_BALANCE: previous,
+                    ATTR_BALANCE: current,
+                    ATTR_BALANCE_CHANGE: change,
+                    "currency": account.currency,
+                },
+            )
+
+        self._last_balances = current_balances
