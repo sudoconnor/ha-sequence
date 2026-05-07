@@ -16,6 +16,7 @@ Early dogfood build. The integration is intentionally conservative while the pub
 - Password-style token field; tokens are not logged or exposed in diagnostics
 - Cloud polling via Home Assistant `DataUpdateCoordinator`
 - One monetary sensor per discovered Sequence account
+- API health/problem binary sensor for polling/auth/rate-limit failures
 - Friendly names and entity IDs are clearly namespaced as `Sequence ...` / `sensor.sequence_*`
 - Stable unique IDs based on Sequence account IDs, so entities survive account renames
 - Privacy-first diagnostics: tokens, account IDs, names, balances, and account metadata are redacted or summarized
@@ -42,6 +43,8 @@ Example entity IDs:
 - `sensor.sequence_credit_card_balance`
 
 Unavailable sensors usually mean Sequence returned an account without usable balance data. If Sequence provides a balance error, the integration exposes it as the non-sensitive `balance_error` attribute.
+
+The integration also creates `binary_sensor.sequence_api_problem`, which turns on when the latest Sequence polling attempt fails. It exposes only non-sensitive health attributes such as account count and a generic error type.
 
 ## API scope
 
