@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-05-07
+
 - Added an API health/problem binary sensor for Sequence polling failures.
 - Added a draft `sequence.trigger_rule` service for allowlisted Sequence Remote API rule triggers.
 - Added Home Assistant balance-change events derived from polled Sequence account balances: `sequence_account_balance_increased` and `sequence_account_balance_decreased`.
