@@ -14,6 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import SequenceApiClient, SequenceApiError, SequenceAuthError
 from .const import (
+    CONF_ALLOWED_RULE_IDS,
     CONF_API_TOKEN,
     CONF_BASE_URL,
     CONF_ENABLE_ACCOUNT_SENSORS,
@@ -62,6 +63,13 @@ def _options_schema(options: dict[str, Any]) -> vol.Schema:
                     DEFAULT_OPTIONS[CONF_ENABLE_ACCOUNT_SENSORS],
                 ),
             ): bool,
+            vol.Optional(
+                CONF_ALLOWED_RULE_IDS,
+                default=options.get(
+                    CONF_ALLOWED_RULE_IDS,
+                    DEFAULT_OPTIONS[CONF_ALLOWED_RULE_IDS],
+                ),
+            ): selector.TextSelector(selector.TextSelectorConfig(multiline=True)),
         }
     )
 
@@ -136,6 +144,10 @@ class SequenceOptionsFlow(config_entries.OptionsFlow):
             CONF_ENABLE_ACCOUNT_SENSORS: self._config_entry.options.get(
                 CONF_ENABLE_ACCOUNT_SENSORS,
                 DEFAULT_OPTIONS[CONF_ENABLE_ACCOUNT_SENSORS],
+            ),
+            CONF_ALLOWED_RULE_IDS: self._config_entry.options.get(
+                CONF_ALLOWED_RULE_IDS,
+                DEFAULT_OPTIONS[CONF_ALLOWED_RULE_IDS],
             ),
         }
         return self.async_show_form(

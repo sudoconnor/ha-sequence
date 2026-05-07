@@ -4,7 +4,7 @@ A HACS-ready custom integration for [Sequence](https://www.getsequence.io/) fina
 
 Licensed under Apache-2.0. This is an unofficial community integration and is not affiliated with, endorsed by, or sponsored by Sequence Ltd.
 
-Current MVP: **read-only Sequence account balance sensors**. No transfers, rule triggers, bill payments, or other money-moving actions are implemented.
+Current MVP: **read-only Sequence account balance sensors**. Transfers, bill payments, and direct account movement are not implemented. Rule triggers are available only as an explicit service call for rule IDs allowlisted in integration options.
 
 ## Status
 
@@ -19,6 +19,7 @@ Early dogfood build. The integration is intentionally conservative while the pub
 - API health/problem binary sensor for polling/auth/rate-limit failures
 - Friendly names and entity IDs are clearly namespaced as `Sequence ...` / `sensor.sequence_*`
 - Stable unique IDs based on Sequence account IDs, so entities survive account renames
+- Optional `sequence.trigger_rule` service for allowlisted Sequence Remote API rule triggers
 - Privacy-first diagnostics: tokens, account IDs, names, balances, and account metadata are redacted or summarized
 - Options flow for polling interval and account balance sensor enablement
 
@@ -53,7 +54,29 @@ The integration currently uses:
 - `POST /accounts`
 - Header: `x-sequence-access-token: Bearer <token>`
 
-Sequence rule discovery, rule execution, transfers, cards, webhooks, and other non-account resources are deliberately **not** implemented yet. Mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
+Sequence rule discovery, transfers, cards, webhooks, and other non-account resources are deliberately **not** implemented yet. Rule execution is available only through the explicit `sequence.trigger_rule` service for allowlisted rule IDs. Additional mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
+
+## Services
+
+### `sequence.trigger_rule`
+
+Triggers a Sequence rule configured for Remote API access.
+
+Guardrails:
+
+- Disabled unless the rule ID is listed in **Sequence options → Allowlisted rule IDs**.
+- Requires the rule's API secret at call time. This is different from the account access token used for balance reads.
+- Supports an optional `idempotency_key` so automations can make retries safer.
+- Fires a `sequence_rule_triggered` Home Assistant event containing the rule ID and Sequence request ID, but not the API secret or payload.
+
+Example service data:
+
+```yaml
+rule_id: ru_12345
+api_secret: !secret sequence_rule_api_secret
+idempotency_key: paycheck-routing-2026-04-27
+payload: {}
+```
 
 See [`docs/API_BOUNDARY.md`](docs/API_BOUNDARY.md) for the current API findings.
 

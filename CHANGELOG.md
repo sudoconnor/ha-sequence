@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added an API health/problem binary sensor for Sequence polling failures.
+- Added a draft `sequence.trigger_rule` service for allowlisted Sequence Remote API rule triggers.
 
 ## 0.1.0 - 2026-04-27
 

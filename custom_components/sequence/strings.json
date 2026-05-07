@@ -26,7 +26,8 @@
         "title": "Sequence options",
         "data": {
           "scan_interval": "Polling interval in seconds",
-          "enable_account_sensors": "Create account balance sensors"
+          "enable_account_sensors": "Create account balance sensors",
+          "allowed_rule_ids": "Allowlisted rule IDs for sequence.trigger_rule, separated by commas or new lines"
         }
       }
     }
