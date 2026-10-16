@@ -4,7 +4,7 @@ A HACS-ready custom integration for [Sequence](https://www.getsequence.io/) fina
 
 Licensed under Apache-2.0. This is an unofficial community integration and is not affiliated with, endorsed by, or sponsored by Sequence Ltd.
 
-Current MVP: **read-only Sequence account balance sensors, API health, and balance-change events**. Transfers, bill payments, and direct account movement are not implemented. Rule triggers are available only as an explicit service call for rule IDs allowlisted in integration options.
+Current MVP: **read-only Sequence account balance sensors, API health, balance-change events, and an optional weekly household budget**. Transfers, bill payments, and direct account movement are not implemented. Rule triggers are available only as an explicit service call for rule IDs allowlisted in integration options. The weekly budget uses a second, read-only Platform API key and only sends `GET` requests.
 
 ## Status
 
@@ -23,6 +23,7 @@ Early dogfood build. The integration is intentionally conservative while the pub
 - Optional `sequence.trigger_rule` service for allowlisted Sequence Remote API rule triggers
 - Privacy-first diagnostics: tokens, account IDs, names, balances, and account metadata are redacted or summarized
 - Options flow for polling interval and account balance sensor enablement
+- Optional weekly household budget, configured in options, with its own read-only API key
 
 ## Install with HACS
 
@@ -45,6 +46,61 @@ Example entity IDs:
 - `sensor.sequence_credit_card_balance`
 
 Unavailable sensors usually mean Sequence returned an account without usable balance data. If Sequence provides a balance error, the integration exposes it as the non-sensitive `balance_error` attribute. Sensors also expose the Sequence `account_id` attribute so automations can target a stable account identity instead of only a friendly name.
+
+## Weekly budget
+
+The weekly budget is optional and does not replace the account balance sensors. Open **Settings → Devices & services → Sequence → Configure → Weekly budget**.
+
+The form asks for:
+
+- A **separate** read-only Sequence API key (`READ_ACCOUNTS` and `READ_TRANSFERS` on the household spend account only). It is stored in the config entry, not in YAML, and it is not the token from the initial setup. Leave the field blank later to keep the saved key.
+- The account, chosen from `GET /accounts`.
+- Weekly budget in USD. The default is 400.
+- Refill weekday. The default is Friday. The cycle starts at 00:00 that weekday in Home Assistant's time zone.
+- An optional card ID. Blank includes every card funded by the account.
+
+The integration then polls about every 15 minutes, plus up to 90 seconds of jitter. A `429` response waits for the `Retry-After` header before the next poll. Each poll sends only:
+
+- `GET /accounts/{id}`
+- `GET /card-transactions?accountId=&from=<cycle start>` (paginated; optional `cardId`)
+- `GET /accounts/{id}/transfers?from=<cycle start>` (paginated)
+
+Nothing in this feature calls `POST`, `PATCH`, `PUT`, or `DELETE`.
+
+Spend for the open cycle:
+
+- `spent_settled` sums settled `MONEY_OUT` card rows. Refunds and other `MONEY_IN` card rows reduce it.
+- The weekly refill is the incoming settled transfer near the start of the cycle (the budget-sized one, or otherwise the earliest rule transfer in the first 36 hours). It resets the week and is **not** a top-up.
+- Other incoming settled transfers in the cycle are top-ups. Outgoing transfers, simulations, and transfers that are still pending are not top-ups.
+- `remaining` is the spendable balance (`availableBalanceInCents` when Sequence sends it, otherwise the ledger balance).
+- `spent_incl_pending = budget + top-ups - balance`
+- `pending = max(0, spent_incl_pending - spent_settled)`
+- `percent = balance / budget`
+- Status is Critical at or below 10%, Low at or below 20%, and Healthy above that.
+
+The entities use an `hs2_` object id so they can run beside an existing MQTT `household_spend_*` dashboard:
+
+- `sensor.hs2_balance`
+- `sensor.hs2_weekly_spend`
+- `sensor.hs2_spent_settled`
+- `sensor.hs2_pending`
+- `sensor.hs2_top_ups`
+- `sensor.hs2_remaining_percent`
+- `sensor.hs2_status`
+- `sensor.hs2_days_until_refill`
+- `sensor.hs2_next_refill`
+- `sensor.hs2_last_sync`
+- `sensor.hs2_burn_rate`
+- `sensor.hs2_average_transaction`
+- `sensor.hs2_median_transaction`
+- `sensor.hs2_largest_transaction`
+- `sensor.hs2_top_merchant`
+- `sensor.hs2_transactions` (the settled list is in attributes)
+- `sensor.hs2_breakdown` (daily and merchant breakdowns)
+
+Transaction and breakdown attributes are capped under Home Assistant's 16 KB attribute limit. `transactions`, `daily`, and `merchants` are excluded from the recorder. Average, median, and largest use settled purchases only. Burn rate is spend-including-pending divided by the days elapsed in the cycle, and it stays empty during the first hour.
+
+These sensors are grouped on a **Sequence Weekly Budget** device. A failed budget poll does not mark `binary_sensor.sequence_api_problem` and does not stop the account balance sensors. The budget sensors go unavailable until the next successful poll. Diagnostics include whether the feature is enabled and a transaction count, and they redact the budget key and account ID.
 
 ## Events
 
@@ -82,12 +138,20 @@ The integration also creates `binary_sensor.sequence_api_problem`, which turns o
 
 ## API scope
 
-The integration currently uses:
+Account balances still use:
 
 - `POST /accounts`
 - Header: `x-sequence-access-token: Bearer <token>`
 
-Sequence rule discovery, transfers, cards, webhooks, transaction/activity feeds, and other non-account resources are deliberately **not** implemented yet. Rule execution is available only through the explicit `sequence.trigger_rule` service for allowlisted rule IDs. Additional mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
+The optional weekly budget uses a different key and the Platform API at `https://api.getsequence.io/platform/v1`:
+
+- `Authorization: Bearer <read-only key>`
+- `GET /accounts`
+- `GET /accounts/{id}`
+- `GET /card-transactions`
+- `GET /accounts/{id}/transfers`
+
+Rule discovery, money movement, bill payment, card management, and webhook registration are still not implemented. Rule execution is available only through the explicit `sequence.trigger_rule` service for allowlisted rule IDs. Additional mutating features should only be added behind explicit opt-in services/buttons with allowlists, confirmation text, caps, idempotency, and auditability.
 
 ## Services
 
@@ -117,9 +181,19 @@ See [`docs/API_BOUNDARY.md`](docs/API_BOUNDARY.md) for the current API findings.
 
 Home Assistant entities will naturally show account names and balances to anyone who can access your Home Assistant instance.
 
-The Sequence API token is stored in Home Assistant's config-entry storage, following the normal UI integration pattern. Home Assistant does not encrypt config entries at rest for this integration, so treat Home Assistant backups as sensitive. Use the most restrictive/read-only Sequence API token available.
+The Sequence API token, and the separate weekly-budget key when that feature is enabled, are stored in Home Assistant's config-entry storage. The budget key is not written to YAML. Home Assistant does not encrypt config entries at rest for this integration, so treat Home Assistant backups as sensitive. Use the most restrictive token each feature allows. The weekly budget key should be a different key from the one used for balance polling.
 
 Diagnostics are more conservative and redact or summarize sensitive fields.
+
+## Publishing a release
+
+HACS installs this integration from a GitHub release tag. After the version in `custom_components/sequence/manifest.json` is merged:
+
+1. Create a GitHub release whose tag is `v0.3.0` (or `0.3.0`) and points at the commit that contains `"version": "0.3.0"`.
+2. Publish the release. HACS downloads the repository at that tag; a separate zip asset is not required.
+3. In HACS, add `https://github.com/sudoconnor/ha-sequence` as a custom repository with category **Integration**, if it is not already added.
+4. Install or update **Sequence**, then restart Home Assistant.
+5. Configure the weekly budget from the integration options with a new read-only key. Do not reuse the existing balance-polling token.
 
 ## Development
 

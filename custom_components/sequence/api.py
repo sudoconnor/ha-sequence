@@ -26,6 +26,17 @@ class SequenceAuthError(SequenceApiError):
 class SequenceRateLimitError(SequenceApiError):
     """Raised when Sequence rate limits the request."""
 
+    def __init__(
+        self,
+        message: str = "Sequence API rate limit exceeded",
+        *,
+        retry_after: float | None = None,
+    ) -> None:
+        """Store an optional Retry-After delay in seconds."""
+
+        super().__init__(message)
+        self.retry_after = retry_after
+
 
 class _Response(Protocol):
     """Subset of aiohttp.ClientResponse used by the client."""

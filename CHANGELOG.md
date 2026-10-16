@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-10-16
+
+- Added an optional weekly household budget that polls Sequence with its own read-only API key.
+- The budget is configured in the options flow: account, weekly amount (default $400), refill weekday (default Friday), and an optional card ID.
+- Polls about every 15 minutes with jitter, and backs off using the `Retry-After` header on HTTP 429.
+- Computes settled spend, pending spend, top-ups, remaining balance, percent, status, refill timing, burn rate, and transaction statistics from `GET /accounts/{id}`, `GET /card-transactions`, and `GET /accounts/{id}/transfers`.
+- The weekly refill transfer is excluded from top-ups. Refunds reduce settled spend.
+- Publishes `sensor.hs2_*` entities, including separate transaction and breakdown sensors whose large attributes are capped and excluded from the recorder.
+- Does not call mutating Platform API endpoints, and does not change the existing balance sensors, API health sensor, or `sequence.trigger_rule` service.
+
 ## 0.2.0 - 2026-05-07
 
 - Added an API health/problem binary sensor for Sequence polling failures.

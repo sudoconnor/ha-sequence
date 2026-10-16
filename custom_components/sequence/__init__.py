@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -13,6 +13,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import SequenceApiClient
+from .budget_coordinator import WeeklyBudgetDataUpdateCoordinator, budget_entry_enabled
 from .const import (
     ATTR_API_SECRET,
     ATTR_IDEMPOTENCY_KEY,
@@ -21,14 +22,17 @@ from .const import (
     CONF_ALLOWED_RULE_IDS,
     CONF_API_TOKEN,
     CONF_BASE_URL,
+    CONF_BUDGET_API_TOKEN,
     DEFAULT_BASE_URL,
     DOMAIN,
     EVENT_RULE_TRIGGERED,
     SERVICE_TRIGGER_RULE,
 )
 from .coordinator import SequenceDataUpdateCoordinator
+from .platform_api import SequencePlatformClient
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
+_LOGGER = logging.getLogger(__name__)
 
 TRIGGER_RULE_SERVICE_SCHEMA = vol.Schema(
     {
@@ -55,6 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SequenceConfigEntry) -> 
     coordinator = SequenceDataUpdateCoordinator(hass, entry, client)
 
     await coordinator.async_config_entry_first_refresh()
+    coordinator.weekly_budget = await _async_setup_weekly_budget(hass, entry, session)
     entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -71,6 +76,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: SequenceConfigEntry) -> 
         )
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True
+
+
+async def _async_setup_weekly_budget(
+    hass: HomeAssistant,
+    entry: SequenceConfigEntry,
+    session: Any,
+) -> WeeklyBudgetDataUpdateCoordinator | None:
+    """Start the weekly budget poller without affecting balance setup."""
+
+    if not budget_entry_enabled(entry):
+        return None
+    client = SequencePlatformClient(
+        session=session,
+        api_token=entry.data[CONF_BUDGET_API_TOKEN],
+        base_url=entry.data.get(CONF_BASE_URL, DEFAULT_BASE_URL),
+    )
+    coordinator = WeeklyBudgetDataUpdateCoordinator(hass, entry, client)
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception as err:
+        _LOGGER.warning(
+            "Weekly budget data is not available yet (%s); balance sensors are unaffected",
+            err,
+        )
+    return coordinator
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: SequenceConfigEntry) -> bool:

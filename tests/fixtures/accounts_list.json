@@ -1,0 +1,42 @@
+{
+  "requestId": "req-accounts-1",
+  "data": {
+    "items": [
+      {
+        "id": "d29dfeca-1111-4000-8000-000000000001",
+        "name": "Household Spend",
+        "type": "POD",
+        "description": null,
+        "externalAccountType": null,
+        "beneficiaryName": "Household",
+        "institutionName": "Thread Bank",
+        "canBeSource": true,
+        "canBeDestination": true,
+        "linkedAccount": null,
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-10-16T00:00:00Z",
+        "deletedAt": null
+      },
+      {
+        "id": "c7a7f26f-2ca5-4ae5-825a-70260591247c",
+        "name": "Payroll",
+        "type": "INCOME_SOURCE",
+        "description": null,
+        "externalAccountType": null,
+        "beneficiaryName": "Household",
+        "institutionName": "Thread Bank",
+        "canBeSource": true,
+        "canBeDestination": false,
+        "linkedAccount": null,
+        "createdAt": "2026-01-01T00:00:00Z",
+        "updatedAt": "2026-10-16T00:00:00Z",
+        "deletedAt": null
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 100,
+      "hasNextPage": false
+    }
+  }
+}

@@ -15,6 +15,25 @@ CONF_BASE_URL = "base_url"
 CONF_ENABLE_ACCOUNT_SENSORS = "enable_account_sensors"
 CONF_ALLOWED_RULE_IDS = "allowed_rule_ids"
 
+CONF_BUDGET_API_TOKEN = "budget_api_token"
+CONF_BUDGET_ENABLED = "budget_enabled"
+CONF_BUDGET_ACCOUNT_ID = "budget_account_id"
+CONF_BUDGET_AMOUNT = "budget_amount"
+CONF_BUDGET_REFILL_WEEKDAY = "budget_refill_weekday"
+CONF_BUDGET_CARD_ID = "budget_card_id"
+
+DEFAULT_WEEKLY_BUDGET = 400
+DEFAULT_REFILL_WEEKDAY = "friday"
+WEEKDAYS = (
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+)
+
 DEFAULT_OPTIONS = {
     CONF_ENABLE_ACCOUNT_SENSORS: True,
     CONF_ALLOWED_RULE_IDS: "",
