@@ -15,6 +15,17 @@ This project currently treats Sequence as a read-only source for account balance
 - Auth header for rule triggers: `x-sequence-signature: Bearer <rule API secret>`
 - Optional idempotency header: `idempotency-key: <unique trigger key>`
 
+## Weekly budget reads
+
+The optional weekly budget uses a second API key against the Platform API (`/platform/v1`) and is limited to GET:
+
+- `GET /accounts` to validate the key and list accounts
+- `GET /accounts/{id}` for the current balance
+- `GET /card-transactions` for settled card rows since the cycle start
+- `GET /accounts/{id}/transfers` for incoming transfers since the cycle start
+
+Auth header: `Authorization: Bearer <read-only key>`. The client has no POST, PATCH, PUT, or DELETE method. Pending card authorizations are not in the card-transaction feed; pending spend is derived from `budget + top-ups - balance`. The weekly refill transfer is excluded from top-ups.
+
 ## Not implemented yet
 
 The following areas are intentionally out of scope until they are documented and can be implemented with Home Assistant guardrails:
@@ -24,7 +35,7 @@ The following areas are intentionally out of scope until they are documented and
 - Bill payment
 - Card management
 - Webhook registration
-- Transaction firehose/history
+- A general transaction firehose beyond the weekly budget's read-only card and transfer queries
 
 ## Balance-change event limitation
 

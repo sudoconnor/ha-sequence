@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import SequenceAccount
+from .budget_sensor import async_add_budget_sensors
 from .const import ATTR_ACCOUNT_ID, ATTR_ACCOUNT_TYPE, ATTR_BALANCE_ERROR, DOMAIN
 from .coordinator import SequenceDataUpdateCoordinator
 
@@ -51,6 +52,7 @@ async def async_setup_entry(
         hass.async_create_task(async_add_new_account_sensors())
 
     entry.async_on_unload(coordinator.async_add_listener(_schedule_add_new_accounts))
+    async_add_budget_sensors(entry, async_add_entities)
 
 
 class SequenceBalanceSensor(CoordinatorEntity[SequenceDataUpdateCoordinator], SensorEntity):

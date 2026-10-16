@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect Sequence",
-        "description": "Enter a Sequence API token. Use the most restrictive/read-only token Sequence allows. The integration currently creates account balance and API health sensors.",
+        "description": "Enter a Sequence API token. Use the most restrictive token Sequence allows. This creates account balance and API health sensors. A weekly budget, which uses its own read-only key, can be added afterward from the integration options.",
         "data": {
           "api_token": "API token",
           "base_url": "API base URL",
@@ -24,12 +24,52 @@
     "step": {
       "init": {
         "title": "Sequence options",
+        "description": "Change polling and rule options, or set up the weekly household budget.",
+        "menu_options": {
+          "general": "Polling and rules",
+          "weekly_budget": "Weekly budget"
+        }
+      },
+      "general": {
+        "title": "Polling and rules",
         "data": {
           "scan_interval": "Polling interval in seconds",
           "enable_account_sensors": "Create account balance sensors",
           "allowed_rule_ids": "Allowlisted rule IDs for sequence.trigger_rule, separated by commas or new lines"
         }
+      },
+      "weekly_budget": {
+        "title": "Weekly budget",
+        "description": "Uses a separate read-only Sequence key with READ_ACCOUNTS and READ_TRANSFERS on one account. The key is stored in this config entry, not in YAML, and it is not the token from the initial setup. Leave the key blank to keep the saved key. The integration only sends GET requests for this feature. The weekly refill transfer is excluded from top-ups.",
+        "data": {
+          "budget_enabled": "Enable weekly budget sensors",
+          "budget_api_token": "Read-only API key",
+          "budget_amount": "Weekly budget (USD)",
+          "budget_refill_weekday": "Refill weekday",
+          "budget_card_id": "Card ID (optional)"
+        },
+        "data_description": {
+          "budget_api_token": "Paste a new key, or leave blank to keep the one already saved.",
+          "budget_card_id": "Limit settled card rows to this card. Leave blank to include every card on the account."
+        }
+      },
+      "weekly_budget_account": {
+        "title": "Household spend account",
+        "description": "Choose the account to track. The integration reads its balance, settled card transactions, and transfers. It does not create transfers or change anything in Sequence.",
+        "data": {
+          "budget_account_id": "Account"
+        }
       }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to Sequence.",
+      "invalid_auth": "Sequence rejected the read-only API key.",
+      "invalid_card_id": "Enter a card ID as a UUID, or leave it blank.",
+      "no_accounts": "The key did not return any accounts.",
+      "forbidden_account": "Sequence refused this account for the read-only key. Grant READ_ACCOUNTS and READ_TRANSFERS on the household spend account.",
+      "account_required": "Select an account.",
+      "rate_limited": "Sequence rate limited the key. Wait a minute and try again.",
+      "unknown": "Unexpected error."
     }
   }
 }

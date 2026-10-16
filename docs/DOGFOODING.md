@@ -17,6 +17,8 @@ Use this before and after testing the integration in a real Home Assistant insta
 - Confirm unavailable sensors have an upstream data reason where available.
 - Check recent Home Assistant logs for `custom_components.sequence` errors.
 - If comparing against an existing manual sync, verify matching account values line up before removing old entities.
+- If the weekly budget is enabled, confirm the new entities are `sensor.hs2_*` and that `sensor.sequence_*` balance sensors are unchanged.
+- Compare `sensor.hs2_*` with the existing household-spend dashboard before any entity rename. The Friday refill should not increase `sensor.hs2_top_ups`.
 
 ## Local dashboard idea
 

@@ -1,0 +1,147 @@
+{
+  "requestId": "req-transfers-1",
+  "data": {
+    "items": [
+      {
+        "id": "809e5e0b-bb0b-49b2-867a-8b44d04d9179",
+        "amountInCents": 40000,
+        "direction": "INTERNAL",
+        "origin": "RULE",
+        "status": "COMPLETE",
+        "executionMode": "LIVE",
+        "source": {
+          "id": "c7a7f26f-2ca5-4ae5-825a-70260591247c",
+          "name": "Payroll",
+          "type": "INCOME_SOURCE",
+          "isDeleted": false
+        },
+        "destination": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "ruleId": "551ff9b6-ddf1-4110-b611-1b11044b72d4",
+        "ruleExecutionId": "4306b3e8-6e77-4c08-ab0b-bb33654af44c",
+        "errorCode": null,
+        "createdAt": "2026-10-16T04:02:00Z",
+        "completedAt": "2026-10-16T04:02:04Z"
+      },
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "amountInCents": 5000,
+        "direction": "MONEY_IN",
+        "origin": "USER",
+        "status": "COMPLETE",
+        "executionMode": "LIVE",
+        "source": null,
+        "destination": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "ruleId": null,
+        "ruleExecutionId": null,
+        "errorCode": null,
+        "createdAt": "2026-10-18T15:00:00Z",
+        "completedAt": "2026-10-18T15:00:04Z"
+      },
+      {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "amountInCents": 2000,
+        "direction": "INTERNAL",
+        "origin": "USER",
+        "status": "COMPLETE",
+        "executionMode": "LIVE",
+        "source": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "destination": {
+          "id": "c7a7f26f-2ca5-4ae5-825a-70260591247c",
+          "name": "Payroll",
+          "type": "INCOME_SOURCE",
+          "isDeleted": false
+        },
+        "ruleId": null,
+        "ruleExecutionId": null,
+        "errorCode": null,
+        "createdAt": "2026-10-17T15:00:00Z",
+        "completedAt": "2026-10-17T15:00:04Z"
+      },
+      {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "amountInCents": 1000,
+        "direction": "MONEY_IN",
+        "origin": "USER_PULL",
+        "status": "PENDING",
+        "executionMode": "LIVE",
+        "source": null,
+        "destination": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "ruleId": null,
+        "ruleExecutionId": null,
+        "errorCode": null,
+        "createdAt": "2026-10-19T15:00:00Z",
+        "completedAt": null
+      },
+      {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "amountInCents": 40000,
+        "direction": "INTERNAL",
+        "origin": "RULE",
+        "status": "COMPLETE",
+        "executionMode": "SIMULATION",
+        "source": {
+          "id": "c7a7f26f-2ca5-4ae5-825a-70260591247c",
+          "name": "Payroll",
+          "type": "INCOME_SOURCE",
+          "isDeleted": false
+        },
+        "destination": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "ruleId": "551ff9b6-ddf1-4110-b611-1b11044b72d4",
+        "ruleExecutionId": null,
+        "errorCode": null,
+        "createdAt": "2026-10-16T04:05:00Z",
+        "completedAt": "2026-10-16T04:05:01Z"
+      },
+      {
+        "id": "55555555-5555-4555-8555-555555555555",
+        "amountInCents": 9999,
+        "direction": "MONEY_IN",
+        "origin": "USER",
+        "status": "COMPLETE",
+        "executionMode": "LIVE",
+        "source": null,
+        "destination": {
+          "id": "d29dfeca-1111-4000-8000-000000000001",
+          "name": "Household Spend",
+          "type": "POD",
+          "isDeleted": false
+        },
+        "ruleId": null,
+        "ruleExecutionId": null,
+        "errorCode": null,
+        "createdAt": "2026-10-15T12:00:00Z",
+        "completedAt": "2026-10-15T12:00:04Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 100,
+      "hasNextPage": false
+    }
+  }
+}

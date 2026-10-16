@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -51,6 +51,7 @@ class SequenceDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.config_entry = entry
         self.last_error_type: str | None = None
+        self.weekly_budget: Any = None
         self._last_balances: dict[str, float] = {}
         self._has_baseline = False
         interval_seconds = int(
